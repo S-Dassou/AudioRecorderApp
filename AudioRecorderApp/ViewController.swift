@@ -45,7 +45,7 @@ class ViewController: UIViewController, AVAudioRecorderDelegate {
             }
         }
     }
-    
+//MARK: - paths dec
     //func that gets path to the directory
     func getDirectory() -> URL {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
@@ -62,16 +62,29 @@ class ViewController: UIViewController, AVAudioRecorderDelegate {
     }
     
     //function to delete file
-    func deleteFile(fileName: String) {
-        let myPaths : [String] = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.documentDirectory, FileManager.SearchPathDomainMask.allDomainsMask, true)
-        if myPaths.count > 0 {
-            let myPath = myPaths[0]
-            filePath = myPath.appendingFormat("/" + fileNameToDelete)
-            print("Local path = \(filePath)")
-        } else {
-            print("Could not find local directory to store file")
-            return
+    func deleteFile(audioName: String) {
+        let fileUrl = getDirectory().appendingPathComponent("\(audioName).m4a")
+
+        // check if file exists
+        // fileUrl.path converts file path object to String by stripping out `file://`
+        if FileManager.default.fileExists(atPath: fileUrl.path) {
+            // delete file
+            do {
+                try FileManager.default.removeItem(atPath: fileUrl.path)
+            } catch {
+                print("Could not delete file, probably read-only filesystem")
+            }
         }
+        
+//        let myPaths : [String] = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.documentDirectory, FileManager.SearchPathDomainMask.allDomainsMask, true)
+//        if myPaths.count > 0 {
+//            let myPath = myPaths[0]
+//            filePath = myPath.appendingFormat("/" + fileNameToDelete)
+//            print("Local path = \(filePath)")
+//        } else {
+//            print("Could not find local directory to store file")
+//            return
+//        }
     }
     @IBAction func recordButtonTapped(_ sender: Any) {
         //check if recorder is active
@@ -129,10 +142,11 @@ extension ViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            numberOfRecords -= 1
-            UserDefaults.standard.set(numberOfRecords, forKey: "myNumber")
+            let audioName = filePaths[indexPath.row]
+            deleteFile(audioName: audioName)
+            filePaths.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .automatic)
-           // filePath.remove(at: indexPath.row)
+            
         }
     }
     
